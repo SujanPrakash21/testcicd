@@ -1,13 +1,11 @@
-name: CI
+name: Continuous Delivery Pipeline
 
 on:
   push:
     branches: ["main"]
-  pull_request:
-    branches: ["main"]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,25 +15,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install --no-cache-dir -r requirements.txt
+        run: pip install --no-cache-dir -r requirements.txt
 
       - name: Lint
-        run: |
-          echo "Running lint..."
-          python -m py_compile app.py model.py
-
-      - name: Run tests (optional)
-        run: echo "Add pytest later"
+        run: python -m py_compile app.py model.py
 
       - name: Docker build
         run: docker build -t testml .
 
       - name: Docker test startup
         run: |
-          echo "Test run Docker image"
           docker run -d -p 8000:8000 testml
+          sleep 5
 
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://testcicd-7d6e.onrender.com  # optional, shows environment link in GitHub
+
+    # Manual approval before deploy
+    steps:
+      - name: Deploy to Render
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
