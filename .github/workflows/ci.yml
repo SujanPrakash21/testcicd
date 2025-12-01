@@ -1,0 +1,41 @@
+nname: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir -r requirements.txt
+
+      - name: Lint
+        run: |
+          echo "Running lint..."
+          python -m py_compile app.py model.py
+
+      - name: Run tests (optional)
+        run: echo "Add pytest later"
+
+      - name: Docker build
+        run: docker build -t testml .
+
+      - name: Docker test startup
+        run: |
+          echo "Test run Docker image"
+          docker run -d -p 8000:8000 testml
+
