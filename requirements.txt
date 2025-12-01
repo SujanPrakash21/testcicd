@@ -1,0 +1,7 @@
+tensorflow
+numpy
+matplotlib
+fastapi
+gunicorn
+uvicorn[standard]
+pydantic
